@@ -3,7 +3,7 @@ import torch
 import wandb
 import copy
 import os
-from avalanche.benchmarks.utils.avalanche_dataset import AvalancheSubset
+from torch.utils.data import Subset  # Updated import
 from DataHandler.PaymentDataset import PaymentDataset
 from UtilsHandler.UtilsHandler import UtilsHandler
 from UtilsHandler.StrategyHandler import StrategyHandler
@@ -71,8 +71,8 @@ def run_joint_experiment(experiment_parameters):
     exp_i = benchmark.train_stream[last_exp_id]
     main_test_ds_i = copy.copy(exp_i.dataset)
     for itr_dep, dept_id in enumerate(experiment_parameters["dept_ids"]):
-        dept_indices = torch.where(main_test_ds_i[:][3] == dept_id)
-        subexp_ds = AvalancheSubset(main_test_ds_i, indices=dept_indices[0])
+        dept_indices = torch.where(main_test_ds_i[:][3] == dept_id)[0]  # Updated indexing
+        subexp_ds = Subset(main_test_ds_i, indices=dept_indices)  # Updated to use torch.utils.data.Subset
         if len(subexp_ds) > 0:
             exp_i.dataset = subexp_ds
             res = strategy.eval(exp_i)
@@ -87,7 +87,6 @@ def run_joint_experiment(experiment_parameters):
 
     fp_ratio, info_fp = mha.compute_FP_ratio(strategy, benchmark.train_stream[last_exp_id].dataset, experiment_parameters)
     fn_ratio, info_fn = mha.compute_FN_ratio(strategy, benchmark.train_stream[last_exp_id].dataset, experiment_parameters)
-
 
     # ============================
     #            Log
@@ -105,7 +104,7 @@ def run_joint_experiment(experiment_parameters):
 
         for itr_dep, dept_id in enumerate(experiment_parameters["dept_ids"]):
             dep_losses = loss_per_dep[itr_dep]
-            if dep_losses[-1] != None:
+            if dep_losses[-1] is not None:  # Updated comparison
                 wandb.log({f"dept/loss_dept{dept_id}": dep_losses[-1]}, step=last_exp_id)
 
         torch.save(strategy.model.state_dict(), os.path.join(output_path, f"ckpt_{run_name}_{last_exp_id}.pt"))
