@@ -27,6 +27,8 @@ class PaymentDataset(data.Dataset):
         print("Data is loaded now.")
 
         # determine encoded transactions ids and depts
+        # Create sequential IDs if none exist
+        transactions_encoded['id'] = np.arange(len(transactions_encoded))
         transactions_encoded_ids = transactions_encoded['id']
         transactions_encoded_depts = transactions_encoded['dept']
 
