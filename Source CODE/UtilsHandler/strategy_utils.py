@@ -2,9 +2,12 @@ import torch
 from avalanche.training.storage_policy import BalancedExemplarsBuffer, ReservoirSamplingBuffer
 from avalanche.benchmarks.utils import AvalancheDataset, AvalancheSubset, \
     AvalancheConcatDataset
+from avalanche.training.plugins.strategy_plugin import StrategyPlugin
+from avalanche.core import SupervisedPlugin
+from torch.utils.data import Dataset, Subset, ConcatDataset
 
 
-class DeptBalancedBuffer(BalancedExemplarsBuffer):
+class DeptBalancedBuffer(SupervisedPlugin):  # Updated inheritance
     def __init__(self, max_size: int, adaptive_size: bool = True,
                  total_num_classes: int = None):
         """ Stores samples for replay, equally divided over classes.
@@ -23,14 +26,12 @@ class DeptBalancedBuffer(BalancedExemplarsBuffer):
         :param total_num_classes: If adaptive size is False, the fixed number
                                   of classes to divide capacity over.
         """
-        if not adaptive_size:
-            assert total_num_classes > 0, \
-                """When fixed exp mem size, total_num_classes should be > 0."""
-
-        super().__init__(max_size, adaptive_size, total_num_classes)
+        super().__init__()
+        self.max_size = max_size
         self.adaptive_size = adaptive_size
         self.total_num_classes = total_num_classes
         self.seen_classes = set()
+        self.buffer_groups = {}
 
     def update(self, strategy: "BaseStrategy", **kwargs):
         new_data = strategy.experience.dataset
@@ -43,10 +44,10 @@ class DeptBalancedBuffer(BalancedExemplarsBuffer):
                 cl_idxs[target] = []
             cl_idxs[target].append(idx)
 
-        # Make AvalancheSubset per class
+        # Make Subset per class
         cl_datasets = {}
         for c, c_idxs in cl_idxs.items():
-            cl_datasets[c] = AvalancheSubset(new_data, indices=c_idxs)
+            cl_datasets[c] = Subset(new_data, indices=c_idxs)
 
         # Update seen classes
         self.seen_classes.update(cl_datasets.keys())

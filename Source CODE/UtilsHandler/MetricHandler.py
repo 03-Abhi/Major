@@ -1,6 +1,6 @@
-import math
+from torch.utils.data import Subset  # Updated import
 import torch
-from avalanche.benchmarks.utils.avalanche_dataset import AvalancheSubset
+import math
 
 
 class MetricHandler(object):
@@ -21,7 +21,7 @@ class MetricHandler(object):
 
         # # Remove all global and local   anomalies
         # valid_indices = torch.where(~torch.isin(ds[:][3], torch.tensor([global_anomaly_dept, local_anomaly_dept])))[0]
-        # ds = AvalancheSubset(ds, indices=valid_indices)
+        # ds = Subset(ds, indices=valid_indices)
 
         # Compute loss for all dataset entries
         b_size = 32
@@ -84,7 +84,7 @@ class MetricHandler(object):
 
         # # Remove all global and local   anomalies
         # valid_indices = torch.where(~torch.isin(ds[:][3], torch.tensor([global_anomaly_dept, local_anomaly_dept])))[0]
-        # ds = AvalancheSubset(ds, indices=valid_indices)
+        # ds = Subset(ds, indices=valid_indices)
 
         # Compute loss for all dataset entries
         b_size = 32

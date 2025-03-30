@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import copy
-from avalanche.benchmarks.generators import ni_benchmark
+from avalanche.benchmarks import NIScenario  # Updated import
 
 
 class BenchmarkHandler(object):
@@ -10,11 +10,13 @@ class BenchmarkHandler(object):
         pass
 
     def get_benchmark(self, params, payment_ds, exp_assignments):
-        benchmark = ni_benchmark(payment_ds,
-                                 payment_ds,
-                                 n_experiences=params["n_experiences"],
-                                 fixed_exp_assignment=exp_assignments)
-
+        # Updated to use NIScenario instead of ni_benchmark
+        benchmark = NIScenario(
+            train_dataset=payment_ds,
+            test_dataset=payment_ds,
+            n_experiences=params["n_experiences"],
+            fixed_exp_assignment=exp_assignments
+        )
         return benchmark
 
     def create_percnt_matrix(self, params):

@@ -1,7 +1,9 @@
 import torch
-from avalanche.training.supervised import Naive, EWC, LwF, SynapticIntelligence, GEM, AGEM
+from avalanche.training.supervised import Naive
+from avalanche.training.plugins import EWCPlugin, LwFPlugin, SynapticIntelligencePlugin
+from avalanche.training.plugins import ReplayPlugin
 from avalanche.evaluation.metrics import loss_metrics
-from avalanche.training.plugins import EvaluationPlugin, ReplayPlugin
+from avalanche.training.plugins import EvaluationPlugin
 from avalanche.logging import InteractiveLogger
 from avalanche.training.storage_policy import ReservoirSamplingBuffer
 import NetworkHandler.BaselineAutoencoder as BaselineAutoencoder
@@ -47,73 +49,77 @@ class StrategyHandler(object):
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if experiment_parameters["strategy"] == "Naive":
-            strategy = Naive(model=model,
-                             optimizer=optimizer,
-                             criterion=torch.nn.BCELoss(),
-                             train_mb_size=experiment_parameters["batch_size"],
-                             train_epochs=experiment_parameters["no_epochs"],
-                             evaluator=eval_plugin,
-                             device=device)
-
+            strategy = Naive(
+                model=model,
+                optimizer=optimizer,
+                criterion=torch.nn.BCELoss(),
+                train_mb_size=experiment_parameters['batch_size'],
+                eval_mb_size=experiment_parameters['batch_size'],
+                device=device,
+                evaluator=eval_plugin
+            )
         elif experiment_parameters["strategy"] == "EWC":
-            strategy = EWC(model=model,
-                           optimizer=optimizer,
-                           criterion=torch.nn.BCELoss(),
-                           ewc_lambda=experiment_parameters["ewc_lambda"],
-                           train_mb_size=experiment_parameters["batch_size"],
-                           train_epochs=experiment_parameters["no_epochs"],
-                           evaluator=eval_plugin,
-                           device=device)
-
+            strategy = Naive(
+                model=model,
+                optimizer=optimizer,
+                criterion=torch.nn.BCELoss(),
+                train_mb_size=experiment_parameters['batch_size'],
+                eval_mb_size=experiment_parameters['batch_size'],
+                device=device,
+                evaluator=eval_plugin,
+                plugins=[EWCPlugin(ewc_lambda=experiment_parameters['ewc_lambda'])]
+            )
         elif experiment_parameters["strategy"] == "LwF":
-            strategy = LwF(model=model,
-                           optimizer=optimizer,
-                           criterion=torch.nn.BCELoss(),
-                           alpha=experiment_parameters["lwf_alpha"],
-                           temperature=experiment_parameters["lwf_temperature"],
-                           train_mb_size=experiment_parameters["batch_size"],
-                           train_epochs=experiment_parameters["no_epochs"],
-                           evaluator=eval_plugin,
-                           device=device)
-
+            strategy = Naive(
+                model=model,
+                optimizer=optimizer,
+                criterion=torch.nn.BCELoss(),
+                train_mb_size=experiment_parameters['batch_size'],
+                eval_mb_size=experiment_parameters['batch_size'],
+                device=device,
+                evaluator=eval_plugin,
+                plugins=[LwFPlugin(alpha=experiment_parameters['lwf_alpha'], temperature=experiment_parameters['lwf_temperature'])]
+            )
         elif experiment_parameters["strategy"] == "SynapticIntelligence":
-            strategy = SynapticIntelligence(model=model,
-                           optimizer=optimizer,
-                           criterion=torch.nn.BCELoss(),
-                           si_lambda=experiment_parameters["si_lambda"],
-                           eps=experiment_parameters["si_eps"],
-                           train_mb_size=experiment_parameters["batch_size"],
-                           train_epochs=experiment_parameters["no_epochs"],
-                           evaluator=eval_plugin,
-                           device=device)
-
+            strategy = Naive(
+                model=model,
+                optimizer=optimizer,
+                criterion=torch.nn.BCELoss(),
+                train_mb_size=experiment_parameters['batch_size'],
+                eval_mb_size=experiment_parameters['batch_size'],
+                device=device,
+                evaluator=eval_plugin,
+                plugins=[SynapticIntelligencePlugin(si_lambda=experiment_parameters['si_lambda'], eps=experiment_parameters['si_eps'])]
+            )
         elif experiment_parameters["strategy"] == "Replay":
             # This replay strategy uses ExperienceBalancedBuffer
             replay_plugin = ReplayPlugin(mem_size=experiment_parameters["replay_mem_size"])
-            strategy = Naive(model=model,
-                             optimizer=optimizer,
-                             criterion=torch.nn.BCELoss(),
-                             train_mb_size=experiment_parameters["batch_size"],
-                             train_epochs=experiment_parameters["no_epochs"],
-                             evaluator=eval_plugin,
-                             plugins=[replay_plugin],
-                             device=device)
-
+            strategy = Naive(
+                model=model,
+                optimizer=optimizer,
+                criterion=torch.nn.BCELoss(),
+                train_mb_size=experiment_parameters['batch_size'],
+                eval_mb_size=experiment_parameters['batch_size'],
+                device=device,
+                evaluator=eval_plugin,
+                plugins=[replay_plugin]
+            )
         elif experiment_parameters["strategy"] == "Replay-Reservoir":
             # This replay strategy uses ExperienceBalancedBuffer
             storage_policy = ReservoirSamplingBuffer(max_size=experiment_parameters["replay_mem_size"])
             replay_plugin = ReplayPlugin(mem_size=experiment_parameters["replay_mem_size"],
                                          storage_policy=storage_policy)
             
-            strategy = Naive(model=model,
-                             optimizer=optimizer,
-                             criterion=torch.nn.BCELoss(),
-                             train_mb_size=experiment_parameters["batch_size"],
-                             train_epochs=experiment_parameters["no_epochs"],
-                             evaluator=eval_plugin,
-                             plugins=[replay_plugin],
-                             device=device)
-
+            strategy = Naive(
+                model=model,
+                optimizer=optimizer,
+                criterion=torch.nn.BCELoss(),
+                train_mb_size=experiment_parameters['batch_size'],
+                eval_mb_size=experiment_parameters['batch_size'],
+                device=device,
+                evaluator=eval_plugin,
+                plugins=[replay_plugin]
+            )
         elif experiment_parameters["strategy"] == "Replay-DeptBalanced":
             # This replay strategy uses ExperienceBalancedBuffer
             storage_policy = DeptBalancedBuffer(max_size=experiment_parameters["replay_mem_size"],
@@ -121,15 +127,16 @@ class StrategyHandler(object):
             replay_plugin = ReplayPlugin(mem_size=experiment_parameters["replay_mem_size"],
                                          storage_policy=storage_policy)
 
-            strategy = Naive(model=model,
-                             optimizer=optimizer,
-                             criterion=torch.nn.BCELoss(),
-                             train_mb_size=experiment_parameters["batch_size"],
-                             train_epochs=experiment_parameters["no_epochs"],
-                             evaluator=eval_plugin,
-                             plugins=[replay_plugin],
-                             device=device)
-
+            strategy = Naive(
+                model=model,
+                optimizer=optimizer,
+                criterion=torch.nn.BCELoss(),
+                train_mb_size=experiment_parameters['batch_size'],
+                eval_mb_size=experiment_parameters['batch_size'],
+                device=device,
+                evaluator=eval_plugin,
+                plugins=[replay_plugin]
+            )
         else:
             raise NotImplementedError()
 
