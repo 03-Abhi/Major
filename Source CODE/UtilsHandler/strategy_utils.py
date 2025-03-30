@@ -1,8 +1,7 @@
 import torch
 from avalanche.training.storage_policy import BalancedExemplarsBuffer, ReservoirSamplingBuffer
-from avalanche.benchmarks.utils import AvalancheDataset, AvalancheSubset, \
-    AvalancheConcatDataset
-from avalanche.training.plugins.strategy_plugin import StrategyPlugin
+from avalanche.benchmarks.utils import AvalancheDataset
+# from avalanche.training.plugins.strategy_plugin import StrategyPlugin
 from avalanche.core import SupervisedPlugin
 from torch.utils.data import Dataset, Subset, ConcatDataset
 
