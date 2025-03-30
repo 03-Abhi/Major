@@ -1,5 +1,5 @@
 import torch
-from avalanche.training.strategies import Naive, EWC, LwF, SynapticIntelligence, GEM, AGEM
+from avalanche.training.supervised import Naive, EWC, LwF, SynapticIntelligence, GEM, AGEM
 from avalanche.evaluation.metrics import loss_metrics
 from avalanche.training.plugins import EvaluationPlugin, ReplayPlugin
 from avalanche.logging import InteractiveLogger
