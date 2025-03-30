@@ -3,7 +3,7 @@ import torch
 import wandb
 import copy
 import os
-from avalanche.benchmarks.utils.avalanche_dataset import AvalancheSubset
+from torch.utils.data import Subset  # Updated import
 from DataHandler.PaymentDataset import PaymentDataset
 from UtilsHandler.UtilsHandler import UtilsHandler
 from UtilsHandler.StrategyHandler import StrategyHandler
@@ -71,7 +71,7 @@ def run_fromscratch_experiment(experiment_parameters):
     main_test_ds_i = copy.copy(exp_i.dataset)
     for itr_dep, dept_id in enumerate(experiment_parameters["dept_ids"]):
         dept_indices = torch.where(main_test_ds_i[:][3] == dept_id)
-        subexp_ds = AvalancheSubset(main_test_ds_i, indices=dept_indices[0])
+        subexp_ds = Subset(main_test_ds_i, indices=dept_indices[0])  # Updated to use torch.utils.data.Subset
         if len(subexp_ds) > 0:
             exp_i.dataset = subexp_ds
             res = strategy.eval(exp_i)
